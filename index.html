@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Alien Dictionary Solver</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      display: flex;
+      justify-content: center;
+      padding: 40px;
+    }
+    .container {
+      background-color: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 600px;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 0.75rem;
+      margin-top: 0.5rem;
+      margin-bottom: 1rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    button {
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .output {
+      margin-top: 1rem;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Alien Dictionary Solver</h1>
+    <label for="wordsInput">Enter words (space-separated and sorted in alien order):</label>
+    <input type="text" id="wordsInput" placeholder="e.g. wrt wrf er ett rftt" />
+    <button onclick="solveAlienOrder()">Find Order</button>
+    <div class="output" id="output"></div>
+  </div>
+
+  <script>
+    function solveAlienOrder() {
+      const input = document.getElementById("wordsInput").value.trim();
+      const words = input.split(/\s+/);
+
+      const graph = {};
+      const inDegree = {};
+
+      for (let word of words) {
+        for (let char of word) {
+          if (!graph[char]) {
+            graph[char] = new Set();
+            inDegree[char] = 0;
+          }
+        }
+      }
+
+      for (let i = 0; i < words.length - 1; i++) {
+        const w1 = words[i], w2 = words[i + 1];
+        const minLen = Math.min(w1.length, w2.length);
+        let found = false;
+        for (let j = 0; j < minLen; j++) {
+          if (w1[j] !== w2[j]) {
+            if (!graph[w1[j]].has(w2[j])) {
+              graph[w1[j]].add(w2[j]);
+              inDegree[w2[j]]++;
+            }
+            found = true;
+            break;
+          }
+        }
+        if (!found && w1.length > w2.length) {
+          document.getElementById("output").innerText = "Invalid Input";
+          return;
+        }
+      }
+
+      const queue = [];
+      for (let char in inDegree) {
+        if (inDegree[char] === 0) queue.push(char);
+      }
+
+      let result = "";
+      while (queue.length > 0) {
+        const current = queue.shift();
+        result += current;
+        for (let neighbor of graph[current]) {
+          inDegree[neighbor]--;
+          if (inDegree[neighbor] === 0) queue.push(neighbor);
+        }
+      }
+
+      const output = result.length === Object.keys(graph).length ? result : "Invalid Input";
+      document.getElementById("output").innerText = `Alien Character Order: ${output}`;
+    }
+  </script>
+</body>
+</html>
